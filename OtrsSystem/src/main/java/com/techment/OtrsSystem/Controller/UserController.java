@@ -1,5 +1,6 @@
 package com.techment.OtrsSystem.Controller;
 
+import com.techment.OtrsSystem.Security.JwtProvider;
 import com.techment.OtrsSystem.Service.UserService;
 import com.techment.OtrsSystem.domain.User;
 import org.slf4j.Logger;
@@ -26,6 +27,8 @@ public class UserController {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
     private static final String STATUS_ACTIVE = "active";
 
+
+
     @Autowired
     private UserService userService;
 
@@ -41,7 +44,8 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public User signup(@RequestBody @Valid LoginDto loginDto){
         return userService.signup(loginDto.getUsername(), loginDto.getPassword(), loginDto.getFirstName(),
-                loginDto.getLastName(), loginDto.getMiddleName(), loginDto.getPhoneNo()).orElseThrow(() -> new HttpServerErrorException(HttpStatus.BAD_REQUEST,"User already exists"));
+                loginDto.getLastName(), loginDto.getMiddleName(), loginDto.getPhoneNo(), loginDto.getEmployeeId(),
+                loginDto.getWorkingNumber(), loginDto.getLandline(), loginDto.getGender()).orElseThrow(() -> new HttpServerErrorException(HttpStatus.BAD_REQUEST,"User already exists"));
     }
 
     @GetMapping("/{id}")
@@ -51,9 +55,11 @@ public class UserController {
     }
 
     @GetMapping("/myDetails/{email}")
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CSR') or hasRole('ROLE_CSR')")
-    public User getMyDetails(@PathVariable("email") String email) {
-            return userService.findUserByEmail(email);
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CSR') or hasRole('ROLE_USER')")
+    public User getMyDetails(@PathVariable("email") String email, @RequestHeader(value="Authorization") String token ) {
+
+            return userService.findUserByEmail(email, token.replace("Bearer", "").trim());
+
     }
 
     @GetMapping
@@ -67,7 +73,8 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public Optional<User> createResolver(@RequestBody @Validated LoginDto loginDto) {
         return userService.createResolver(loginDto.getUsername(), loginDto.getPassword(), loginDto.getFirstName(),
-                loginDto.getLastName(), loginDto.getMiddleName(), loginDto.getPhoneNo());
+                loginDto.getLastName(), loginDto.getMiddleName(), loginDto.getPhoneNo(), loginDto.getEmployeeId(),
+                loginDto.getWorkingNumber(), loginDto.getLandline(), loginDto.getGender());
     }
 
     @DeleteMapping("/{id}/delete")
@@ -91,5 +98,12 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public void activateUser(@PathVariable("id") long id) {
         userService.updateActivationStatus(id, STATUS_ACTIVE);
+    }
+
+    @PatchMapping("/role/admin/{userId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @ResponseStatus(HttpStatus.OK)
+    public  void  makeAdmin(@PathVariable("userId") long id){
+        userService.updateRole(id, "ROLE_ADMIN");
     }
 }

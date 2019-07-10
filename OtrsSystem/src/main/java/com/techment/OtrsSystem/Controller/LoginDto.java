@@ -9,13 +9,34 @@ public class LoginDto {
     @NotNull
     private String password;
 
+
+    private String workingNumber;
+
+
+    private String landline;
+
+
+    private String gender;
+
+
     private String firstName;
+
 
     private String lastName;
 
+
     private String middleName;
 
+
+
     private String phoneNo;
+
+
+
+    private String employeeId;
+
+//    private String activationStatus;
+
 
     /**
      * Default constructor
@@ -32,17 +53,47 @@ public class LoginDto {
         this.username = username;
         this.password = password;
     }
-    /**
-     * Full constructor
-     * @param username
-     * @param password
-     */
-    public LoginDto(String username, String password, String firstName, String lastName, String middleName, String phoneNo) {
-        this(username, password);
+
+    public LoginDto(@NotNull String username, @NotNull String password, String workingNumber, String landline, String gender, String firstName,  String lastName, String middleName, String phoneNo, String employeeId) {
+        this.username = username;
+        this.password = password;
+        this.workingNumber = workingNumber;
+        this.landline = landline;
+        this.gender = gender;
         this.firstName = firstName;
         this.lastName = lastName;
         this.middleName = middleName;
         this.phoneNo = phoneNo;
+        this.employeeId = employeeId;
+
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getWorkingNumber() {
+        return workingNumber;
+    }
+
+    public String getLandline() {
+        return landline;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
     }
 
     public String getMiddleName() {
@@ -53,27 +104,9 @@ public class LoginDto {
         return phoneNo;
     }
 
-    public String getUsername() {
-        return username;
+    public String getEmployeeId() {
+        return employeeId;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
 }

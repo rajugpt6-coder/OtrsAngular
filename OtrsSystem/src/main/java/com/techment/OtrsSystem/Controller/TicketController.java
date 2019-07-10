@@ -44,22 +44,21 @@ public class TicketController {
     @PostMapping("/ticket")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CSR') or hasRole('ROLE_USER')")
     @ResponseStatus(HttpStatus.CREATED)
-    public Optional<Ticket> raiseTicket(@RequestBody @Valid TicketDto ticketDto, @PathVariable("id") Long id){
+    public Optional<Ticket> raiseTicket(@RequestBody @Validated TicketDto ticketDto, @PathVariable("id") Long id){
 
         return Optional.ofNullable(ticketService.createTicket(ticketDto.getCategory(), ticketDto.getDescription(), INITIAL_STATUS, ticketDto.getTitle(), id));
 
     }
 
-    @GetMapping("/{email}/tickets")
+    @GetMapping("/tickets")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CSR') or hasRole('ROLE_USER')")
-    public Page<Ticket> getTickets(@PathVariable("id") Long id, @PathVariable("email") String email, Pageable pageable
-                                             ){
-        if(userService.findUserById(id).get().getEmail().equalsIgnoreCase(email)) {
-//            Page<Ticket> tickets = ticketService.findTicketsByUserId(id, pageable);
+    public Page<Ticket> getTickets(@PathVariable("id") Long id,  Pageable pageable){
+//        if(userService.findUserById(id).get().getEmail().equalsIgnoreCase(email)) {
+            return ticketService.findTicketsByUserId(id, pageable);
 //            PagedResources<Ticket> result =  pagedResourcesAssembler.toResource(tickets, assembler);
-            return ticketService.findTicketsByUserId(id, pageable) ;
-        }
-        return null;
+//            return ticketService.findTicketsByUserId(id, pageable) ;
+//        }
+//        return null;
     }
 
     @GetMapping("/{email}/tickets/{ticketId}")
@@ -80,8 +79,8 @@ public class TicketController {
     @PatchMapping("/tickets/{ticketId}/resolveTicket")
     @PreAuthorize("hasRole('ROLE_CSR')")
     @ResponseStatus(HttpStatus.CREATED)
-    public void resolveIssue(@PathVariable("ticketId") Long id, @RequestBody @Validated TicketDto ticketDto) {
-        ticketService.resolveIssue(id, ticketDto.getUserId());
+    public void resolveIssue(@PathVariable("ticketId") long ticketId, @PathVariable("id") long csrId) {
+        ticketService.resolveIssue(ticketId, csrId);
     }
 
     @PatchMapping("/tickets/{ticketId}/status/{status}")

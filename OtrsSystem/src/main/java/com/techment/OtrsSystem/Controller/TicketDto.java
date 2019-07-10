@@ -2,41 +2,35 @@ package com.techment.OtrsSystem.Controller;
 
 import com.techment.OtrsSystem.domain.CustomerServiceRepresentative;
 
-public class TicketDto {
-    private long id;
+import javax.validation.constraints.NotNull;
 
+public class TicketDto {
+
+
+    @NotNull
     private String title;
 
+    @NotNull
     private String description;
 
-//    private String status;
 
+    private String status;
+
+    @NotNull
     private String category;
 
-    private long userId;
 
     private CustomerServiceRepresentative customerServiceRepresentative;
 
-    public long getUserId() {
-        return userId;
-    }
 
-    public void setUserId(long userId) {
-        this.userId = userId;
-    }
 
-    public TicketDto(String title, String description,  String category, long userId) {
+    public TicketDto(String title, String description,  String category) {
         this.title = title;
         this.description = description;
         this.category = category;
-        this.userId = userId;
+
     }
 
-    public TicketDto(String title, String description, String category) {
-        this.title = title;
-        this.description = description;
-        this.category = category;
-    }
 
     protected TicketDto() {}
 
@@ -56,13 +50,13 @@ public class TicketDto {
         this.description = description;
     }
 
-//    public String getStatus() {
-//        return status;
-//    }
-//
-//    public void setStatus(String status) {
-//        this.status = status;
-//    }
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     public String getCategory() {
         return category;

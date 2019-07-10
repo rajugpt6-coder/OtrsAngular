@@ -18,7 +18,7 @@ import java.util.Optional;
 
 @RepositoryRestResource(exported = false)
 public interface TicketRepository extends PagingAndSortingRepository<Ticket, Long> {
-    Page<Ticket> findByUser(Optional<User> user, Pageable pageable);
+    Page<Ticket> findByUserId(long id, Pageable pageable);
     Page<Ticket> findByCategoryAndStatus(String category, String status, Pageable pageable);
 
     @Modifying
