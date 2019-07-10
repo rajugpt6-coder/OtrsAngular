@@ -1,8 +1,11 @@
 package com.techment.OtrsSystem.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.util.Arrays;
 import java.util.List;
@@ -26,23 +29,41 @@ public class User {
 
     @Column(name = "password")
     @JsonIgnore
+    @NotNull
     private String password;
 
     @Column(name = "first_name")
+    @NotNull
     private String firstName;
 
     @Column(name = "middle_name")
     private String middleName;
 
     @Column(name = "last_name")
+    @NotNull
     private String lastName;
+
+    @NotNull
+    @Column(name = "emp_id")
+    private String employeeId;
 
     @Column(name = "activation_status")
     private String activationStatus;
 
+    @Pattern(regexp="^\\(?(\\d{3})\\)?[- ]?(\\d{3})[- ]?(\\d{4})$",
+            message="{invalid.phonenumber}")
+    @Column(name = "working_no")
+    @NotNull
+    private String workingNumber;
+
+
+    @Column(name = "landline_no")
+    private String landline;
+
     @Column(name = "phone_no")
     @Pattern(regexp="^\\(?(\\d{3})\\)?[- ]?(\\d{3})[- ]?(\\d{4})$",
             message="{invalid.phonenumber}")
+    @NotNull
     private String phoneNo;
 
     /**
@@ -60,58 +81,62 @@ public class User {
 
     private List<Role> roles;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fk_gender")
+    private Gender gender;
+
     @OneToMany
-    @JoinColumn(name = "issue_id")
     private List<Ticket> tickets;
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinTable(name = "tbl_user_csr")
     private CustomerServiceRepresentative customerServiceRepresentative;
 
-    public User(String email, String password, String firstName, String middleName, String lastName, String phoneNo, List<Role> roles, List<Ticket> tickets, CustomerServiceRepresentative customerServiceRepresentative) {
+    public User(@Pattern(regexp = "[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\."
+            + "[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@"
+            + "(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
+            message = "{invalid.email}") @NotNull String email, @NotNull String password, String firstName,  String middleName, @NotNull String lastName, @NotNull String employeeId, String activationStatus,
+            @NotNull String workingNumber,
+             String landline,
+            @NotNull String phoneNo, @NotNull List<Role> roles, @NotNull Gender gender) {
         this.email = email;
         this.password = password;
         this.firstName = firstName;
         this.middleName = middleName;
         this.lastName = lastName;
-        this.phoneNo = phoneNo;
-        this.roles = roles;
-        this.tickets = tickets;
-        this.customerServiceRepresentative = customerServiceRepresentative;
-    }
-
-    public User(String email, String password, String firstName, String middleName, String lastName, String phoneNo, List<Role> roles) {
-        this.email = email;
-        this.password = password;
-        this.firstName = firstName;
-        this.middleName = middleName;
-        this.lastName = lastName;
-        this.phoneNo = phoneNo;
-        this.roles = roles;
-        this.tickets = tickets;
-        this.customerServiceRepresentative = customerServiceRepresentative;
-    }
-
-    public User (String email, String password, String firstName,String middleName, String lastName, String phoneNo, Role role) {
-        this.email = email;
-        this.password = password;
-        this.firstName = firstName;
-        this.middleName = middleName;
-        this.lastName = lastName;
-        this.phoneNo = phoneNo;
-        this.roles = Arrays.asList(role);
-    }
-
-    public User (String email, String password, String firstName,String middleName, String lastName, String phoneNo, Role role, String activationStatus) {
-        this.email = email;
-        this.password = password;
-        this.firstName = firstName;
-        this.middleName = middleName;
-        this.lastName = lastName;
-        this.phoneNo = phoneNo;
-        this.roles = Arrays.asList(role);
+        this.employeeId = employeeId;
         this.activationStatus = activationStatus;
+        this.workingNumber = workingNumber;
+        this.landline = landline;
+        this.phoneNo = phoneNo;
+        this.roles = roles;
+        this.gender = gender;
     }
+
+    public User(long id, @Pattern(regexp = "[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\."
+            + "[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@"
+            + "(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
+            message = "{invalid.email}") String email, @NotNull String password, @NotNull String firstName, String middleName, @NotNull String lastName, @NotNull String employeeId, String activationStatus, @Pattern(regexp = "^\\(?(\\d{3})\\)?[- ]?(\\d{3})[- ]?(\\d{4})$",
+            message = "{invalid.phonenumber}") @NotNull String workingNumber, String landline, @Pattern(regexp = "^\\(?(\\d{3})\\)?[- ]?(\\d{3})[- ]?(\\d{4})$",
+            message = "{invalid.phonenumber}") @NotNull String phoneNo, List<Role> roles, Gender gender, List<Ticket> tickets, CustomerServiceRepresentative customerServiceRepresentative) {
+        this.id = id;
+        this.email = email;
+        this.password = password;
+        this.firstName = firstName;
+        this.middleName = middleName;
+        this.lastName = lastName;
+        this.employeeId = employeeId;
+        this.activationStatus = activationStatus;
+        this.workingNumber = workingNumber;
+        this.landline = landline;
+        this.phoneNo = phoneNo;
+        this.roles = roles;
+        this.gender = gender;
+        this.tickets = tickets;
+        this.customerServiceRepresentative = customerServiceRepresentative;
+    }
+
+
 
     public String getActivationStatus() {
         return activationStatus;
@@ -199,5 +224,37 @@ public class User {
 
     public void setRoles(List<Role> roles) {
         this.roles = roles;
+    }
+
+    public String getEmployeeId() {
+        return employeeId;
+    }
+
+    public void setEmployeeId(String employeeId) {
+        this.employeeId = employeeId;
+    }
+
+    public String getWorkingNumber() {
+        return workingNumber;
+    }
+
+    public void setWorkingNumber(String workingNumber) {
+        this.workingNumber = workingNumber;
+    }
+
+    public String getLandline() {
+        return landline;
+    }
+
+    public void setLandline(String landline) {
+        this.landline = landline;
+    }
+
+    public Gender getGender() {
+        return gender;
+    }
+
+    public void setGender(Gender gender) {
+        this.gender = gender;
     }
 }

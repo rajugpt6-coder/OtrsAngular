@@ -1,6 +1,7 @@
 package com.techment.OtrsSystem.domain;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 
 @Entity
@@ -13,12 +14,15 @@ public class Ticket {
     private long id;
 
     @Column(name = "category")
+    @NotNull
     private String category;
 
     @Column(name = "title")
+    @NotNull
     private String title;
 
     @Column(name = "issue_description")
+    @NotNull
     private String issueDescription;
 
     @Column(name = "cr_date")
@@ -30,8 +34,8 @@ public class Ticket {
     @Column(name = "status")
     private String status;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fk_user")
     private User user;
 
     @ManyToOne()
@@ -41,7 +45,7 @@ public class Ticket {
 
 
 
-    public Ticket(String category, String title, String issueDescription, Timestamp createdDate, Timestamp dueDate, String status, User user) {
+    public Ticket(@NotNull String category, @NotNull String title, @NotNull String issueDescription, Timestamp createdDate, Timestamp dueDate, String status, User user) {
         this.category = category;
         this.title = title;
         this.issueDescription = issueDescription;

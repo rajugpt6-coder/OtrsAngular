@@ -1,9 +1,11 @@
 package com.techment.OtrsSystem.Service;
 
+import com.techment.OtrsSystem.Repository.GenderRepository;
 import com.techment.OtrsSystem.Repository.RoleRepository;
 import com.techment.OtrsSystem.Repository.UserRepository;
 import com.techment.OtrsSystem.Security.JwtProvider;
 import com.techment.OtrsSystem.domain.CustomerServiceRepresentative;
+import com.techment.OtrsSystem.domain.Gender;
 import com.techment.OtrsSystem.domain.Role;
 import com.techment.OtrsSystem.domain.User;
 import org.slf4j.Logger;
@@ -36,6 +38,9 @@ public class UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private GenderRepository genderRepository;
 
     @Autowired
     private JwtProvider jwtProvider;
@@ -78,7 +83,7 @@ public class UserService {
         String token = "";
         Optional<User> user = userRepository.findByEmail(username);
         String rtn="";
-        Optional<Role> role = roleRepository.findByRoleName("ROLE_CSR");
+
         if (user.isPresent()) {
             try {
                 authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
@@ -87,16 +92,16 @@ public class UserService {
                         "\"id\":" +"\""+user.get().getId()+"\""+
                         ",\"email\":" +"\""+user.get().getEmail()+"\""+
                         ",\"phoneNo\":" +"\""+user.get().getPhoneNo()+"\""+
-                        ",\"role\":" +"\""+role.get().getRoleName()+"\""+
+                        ",\"role\":" +"\""+user.get().getRoles()+"\""+
                         ",\"token\":" +"\""+token+"\""+
                         '}';
 
             } catch (AuthenticationException e){
-                rtn= "{\"status\":\"failure\",\"msg\":\"Please signup !!\"}";
+                rtn= "{\"status\":\"failure\",\"msg\":\"Incorrect user name or password !!\"}";
             }
         }
         else{
-            rtn= "{\"status\":\"failure\",\"msg\":\"Incorrect username !!\"}";
+            rtn= "{\"status\":\"failure\",\"msg\":\"please sign up !!\"}";
         }
         return rtn;
     }
@@ -110,10 +115,12 @@ public class UserService {
      * @param lastName last name
      * @return Optional of user, empty if the user already exists.
      */
-    public Optional<User> signup(String username, String password, String firstName, String lastName, String middleName, String phoneNo) {
+    public Optional<User> signup(String username, String password, String firstName, String lastName, String middleName, String phoneNo, String employeeId,
+                                 String workingNumber, String landline, String gender) {
         LOGGER.info("New user attempting to sign up");
         Optional<User> user = Optional.empty();
-        return createUser(user,"ROLE_USER", username, password, firstName, lastName, middleName, phoneNo);
+        return createUser(user,"ROLE_ADMIN", username, password, firstName, lastName, middleName, phoneNo, employeeId,
+                workingNumber, landline, gender);
     }
 
     public Page<User> getAll(Pageable pageable) throws NoSuchElementException {
@@ -131,48 +138,39 @@ public class UserService {
     }
 
     public Optional<User> createResolver( String username, String password, String firstName,
-                                          String lastName, String middleName, String phoneNo) {
+                                          String lastName, String middleName, String phoneNo, String employeeId,
+                                          String workingNumber, String landline, String gender) {
         Optional<User> user = Optional.empty();
         return createUser(user,"ROLE_CSR",  username, password, firstName,
-                 lastName,  middleName,  phoneNo);
+                 lastName,  middleName,  phoneNo, employeeId, workingNumber,
+                landline, gender);
     }
 
-    private Optional<User> createUser(Optional<User> user,String role, String username, String password, String firstName,
-                            String lastName, String middleName, String phoneNo) {
+    private Optional<User> createUser(Optional<User> user, String role, String username, String password, String firstName,
+                                      String lastName, String middleName, String phoneNo, String employeeId, String workingNumber,
+                                      String landline, String genderName) {
 
 
         if (!userRepository.findByEmail(username).isPresent()) {
             Optional<Role> roles = roleRepository.findByRoleName(role);
+            Optional<Gender> gender = genderRepository.findByGenderName(genderName);
             user = Optional.of(userRepository.save(new User(username,
                     passwordEncoder.encode(password),
                     firstName,
                     middleName,
                     lastName,
+                    employeeId,
+                    ACTIVATION_STATUS,
+                    workingNumber,
+                    landline,
                     phoneNo,
-                    roles.get(),
-                    ACTIVATION_STATUS
+                    Arrays.asList(roles.get()),
+                    gender.get()
             )));
         }
         return user;
     }
 
-    private Optional<User> createUser(Optional<User> user,List<Role> role, String username, String password, String firstName,
-                                      String lastName, String middleName, String phoneNo) throws NoSuchElementException {
-
-
-        if (!userRepository.findByEmail(username).isPresent()) {
-
-            user = Optional.of(userRepository.save(new User(username,
-                    passwordEncoder.encode(password),
-                    firstName,
-                    middleName,
-                    lastName,
-                    phoneNo,
-                    role
-            )));
-        }
-        return user;
-    }
 
     public void deleteUser(long id) {
          userRepository.deleteById(id);
@@ -204,8 +202,21 @@ public class UserService {
 
     }
 
-    public User findUserByEmail(String email)  throws NoSuchElementException {
-        return userRepository.findByEmail(email).orElseThrow(() ->
-                new NoSuchElementException("No users found"));
+    public User findUserByEmail(String email, String token)  throws NoSuchElementException {
+        if(email.equalsIgnoreCase(jwtProvider.getUsername(token))) {
+            return userRepository.findByEmail(email).orElseThrow(() ->
+                    new NoSuchElementException("No users found"));
+        }
+        return null;
+    }
+
+    public void updateRole(long id, String role) {
+        if(userRepository.existsById(id)){
+            List<Role> roles = new ArrayList<>();
+            roles.add(roleRepository.findByRoleName(role).get());
+            User user = userRepository.findById(id).get();
+            user.setRoles(roles);
+            userRepository.save(user);
+        }
     }
 }

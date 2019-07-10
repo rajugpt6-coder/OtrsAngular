@@ -3,6 +3,7 @@ package com.techment.OtrsSystem.domain;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "tbl_role")

@@ -46,10 +46,10 @@ public class TicketService {
 
     public Page<Ticket> findTicketsByUserId (Long id, Pageable pageable) {
         Page<Ticket> ticket = null;
-        if(userRepository.existsById(id) && userRepository.findById(id).get().getActivationStatus().equalsIgnoreCase("active")) {
-            return ticketRepository.findByUser(userRepository.findById(id), pageable);
-        }
-        return ticket;
+//        if(userRepository.existsById(id) && userRepository.findById(id).get().getActivationStatus().equalsIgnoreCase("active")) {
+            return ticketRepository.findByUserId(id, pageable);
+//        }
+//        return ticket;
 
     }
 
