@@ -4,10 +4,7 @@ import com.techment.OtrsSystem.Repository.GenderRepository;
 import com.techment.OtrsSystem.Repository.RoleRepository;
 import com.techment.OtrsSystem.Repository.UserRepository;
 import com.techment.OtrsSystem.Security.JwtProvider;
-import com.techment.OtrsSystem.domain.CustomerServiceRepresentative;
-import com.techment.OtrsSystem.domain.Gender;
-import com.techment.OtrsSystem.domain.Role;
-import com.techment.OtrsSystem.domain.User;
+import com.techment.OtrsSystem.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,7 +89,7 @@ public class UserService {
                         "\"id\":" +"\""+user.get().getId()+"\""+
                         ",\"email\":" +"\""+user.get().getEmail()+"\""+
                         ",\"phoneNo\":" +"\""+user.get().getPhoneNo()+"\""+
-                        ",\"role\":" +"\""+user.get().getRoles()+"\""+
+                        ",\"role\":" +"\""+user.get().getRoles().get(0).getRoleName()+"\""+
                         ",\"token\":" +"\""+token+"\""+
                         '}';
 
@@ -119,11 +116,14 @@ public class UserService {
                                  String workingNumber, String landline, String gender) {
         LOGGER.info("New user attempting to sign up");
         Optional<User> user = Optional.empty();
-        return createUser(user,"ROLE_ADMIN", username, password, firstName, lastName, middleName, phoneNo, employeeId,
+        return createUser(user,"ROLE_USER", username, password, firstName, lastName, middleName, phoneNo, employeeId,
                 workingNumber, landline, gender);
+//        return createResolver(username, password, firstName, lastName, middleName, phoneNo, employeeId,
+//                workingNumber, landline, gender);
     }
 
     public Page<User> getAll(Pageable pageable) throws NoSuchElementException {
+        LOGGER.info("Request to retrieve all users");
         return userRepository.findAll(pageable);
     }
 
@@ -134,17 +134,39 @@ public class UserService {
     }
 
     public CustomerServiceRepresentative getCustomerServiceRepresentative(long id){
-        return userRepository.findCustomerServiceRepresentativeById(id);
+        return userRepository.findById(id).get().getCustomerServiceRepresentative();
     }
 
     public Optional<User> createResolver( String username, String password, String firstName,
                                           String lastName, String middleName, String phoneNo, String employeeId,
-                                          String workingNumber, String landline, String gender) {
+                                          String workingNumber, String landline, String genderName, String department) {
         Optional<User> user = Optional.empty();
-        return createUser(user,"ROLE_CSR",  username, password, firstName,
-                 lastName,  middleName,  phoneNo, employeeId, workingNumber,
-                landline, gender);
+//        return createUser(user,"ROLE_CSR",  username, password, firstName,
+//                 lastName,  middleName,  phoneNo, employeeId, workingNumber,
+//                landline, gender);
+
+        if (!userRepository.findByEmail(username).isPresent()) {
+            Optional<Role> roles = roleRepository.findByRoleName("ROLE_CSR");
+            CustomerServiceRepresentative csr = new CustomerServiceRepresentative(department);
+            Optional<Gender> gender = genderRepository.findByGenderName(genderName);
+            user = Optional.of(userRepository.save(new User(username,
+                    passwordEncoder.encode(password),
+                    firstName,
+                    middleName,
+                    lastName,
+                    employeeId,
+                    ACTIVATION_STATUS,
+                    workingNumber,
+                    landline,
+                    phoneNo,
+                    Arrays.asList(roles.get()),
+                    gender.get(),
+                    csr
+            )));
+        }
+        return user;
     }
+
 
     private Optional<User> createUser(Optional<User> user, String role, String username, String password, String firstName,
                                       String lastName, String middleName, String phoneNo, String employeeId, String workingNumber,
@@ -177,19 +199,18 @@ public class UserService {
     }
 
     public void updateProfile(long id, String username, String firstName,
-                              String lastName, String middleName, String phoneNo){
+                              String lastName, String middleName, String phoneNo, String token){
 
+        if(userRepository.findById(id).get().getEmail().equalsIgnoreCase(jwtProvider.getUsername(filterToken(token))) &&
+                userRepository.existsById(id)) {
 
-
-        if(userRepository.existsById(id)){
-            User user = userRepository.findById(id).get();
-            user.setEmail(username);
-            user.setFirstName(firstName);
-            user.setLastName(lastName);
-            user.setMiddleName(middleName);
-            user.setPhoneNo(phoneNo);
-            userRepository.save(user);
-
+                User user = userRepository.findById(id).get();
+                user.setEmail(username);
+                user.setFirstName(firstName);
+                user.setLastName(lastName);
+                user.setMiddleName(middleName);
+                user.setPhoneNo(phoneNo);
+                userRepository.save(user);
         }
     }
 
@@ -203,7 +224,7 @@ public class UserService {
     }
 
     public User findUserByEmail(String email, String token)  throws NoSuchElementException {
-        if(email.equalsIgnoreCase(jwtProvider.getUsername(token))) {
+        if(email.equalsIgnoreCase(jwtProvider.getUsername(filterToken(token)))) {
             return userRepository.findByEmail(email).orElseThrow(() ->
                     new NoSuchElementException("No users found"));
         }
@@ -218,5 +239,21 @@ public class UserService {
             user.setRoles(roles);
             userRepository.save(user);
         }
+    }
+
+    public String filterToken(String token) { return token.replace("Bearer", "").trim(); }
+
+    //searching code
+
+    public Page<User> findUsersByEmployeeId(String employeeId, Pageable pageable){
+        return userRepository.findByEmployeeId(employeeId, pageable);
+    }
+
+    public Page<User> findUsersByFirstName(String firstName, Pageable pageable){
+        return userRepository.findByFirstName(firstName, pageable);
+    }
+
+    public Page<User> findUsersByActivationStatus(String activationStatus, Pageable pageable){
+        return userRepository.findByActivationStatus(activationStatus, pageable);
     }
 }

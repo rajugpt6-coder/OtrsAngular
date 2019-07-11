@@ -1,11 +1,12 @@
 package com.techment.OtrsSystem.domain;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.List;
 
 @Entity
 @Table(name = "tbl_csr")
-public class CustomerServiceRepresentative {
+public class CustomerServiceRepresentative implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -16,19 +17,16 @@ public class CustomerServiceRepresentative {
     private String department;
 
     @OneToOne
-    @JoinTable(name = "tbl_user_csr")
     private User user;
 
     @OneToMany
-    @JoinColumn(name = "issue_id")
     private List<Ticket> assignedTickets;
 
     protected CustomerServiceRepresentative() {}
 
-    public CustomerServiceRepresentative(String department, User user, List<Ticket> tickets) {
+    public CustomerServiceRepresentative(String department) {
         this.department = department;
-        this.user = user;
-        this.assignedTickets = tickets;
+
     }
 
     public long getId() {
