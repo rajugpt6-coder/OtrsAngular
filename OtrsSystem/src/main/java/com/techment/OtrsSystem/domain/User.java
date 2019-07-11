@@ -81,15 +81,15 @@ public class User {
 
     private List<Role> roles;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "fk_gender")
     private Gender gender;
 
     @OneToMany
     private List<Ticket> tickets;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinTable(name = "tbl_user_csr")
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(name = "fk_csr")
     private CustomerServiceRepresentative customerServiceRepresentative;
 
     public User(@Pattern(regexp = "[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\."
@@ -136,7 +136,27 @@ public class User {
         this.customerServiceRepresentative = customerServiceRepresentative;
     }
 
+    public User(@Pattern(regexp = "[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\."
+            + "[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@"
+            + "(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
+            message = "{invalid.email}") String email, @NotNull String password, @NotNull String firstName, String middleName, @NotNull String lastName, @NotNull String employeeId, String activationStatus, @Pattern(regexp = "^\\(?(\\d{3})\\)?[- ]?(\\d{3})[- ]?(\\d{4})$",
+            message = "{invalid.phonenumber}") @NotNull String workingNumber, String landline, @Pattern(regexp = "^\\(?(\\d{3})\\)?[- ]?(\\d{3})[- ]?(\\d{4})$",
+            message = "{invalid.phonenumber}") @NotNull String phoneNo, List<Role> roles, Gender gender, CustomerServiceRepresentative customerServiceRepresentative) {
+        this.email = email;
+        this.password = password;
+        this.firstName = firstName;
+        this.middleName = middleName;
+        this.lastName = lastName;
+        this.employeeId = employeeId;
+        this.activationStatus = activationStatus;
+        this.workingNumber = workingNumber;
+        this.landline = landline;
+        this.phoneNo = phoneNo;
+        this.roles = roles;
+        this.gender = gender;
 
+        this.customerServiceRepresentative = customerServiceRepresentative;
+    }
 
     public String getActivationStatus() {
         return activationStatus;

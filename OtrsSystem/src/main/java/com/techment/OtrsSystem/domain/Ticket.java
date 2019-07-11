@@ -38,7 +38,8 @@ public class Ticket {
     @JoinColumn(name = "fk_user")
     private User user;
 
-    @ManyToOne()
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fk_csr")
     private CustomerServiceRepresentative customerServiceRepresentative;
 
     protected Ticket() {}

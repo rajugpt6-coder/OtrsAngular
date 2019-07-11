@@ -58,7 +58,7 @@ public class UserController {
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CSR') or hasRole('ROLE_USER')")
     public User getMyDetails(@PathVariable("email") String email, @RequestHeader(value="Authorization") String token ) {
 
-            return userService.findUserByEmail(email, token.replace("Bearer", "").trim());
+            return userService.findUserByEmail(email, token);
 
     }
 
@@ -68,13 +68,13 @@ public class UserController {
         return userService.getAll(pageable);
     }
 
-    @PostMapping("/resolver")
+    @PostMapping("/resolver/{department}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
-    public Optional<User> createResolver(@RequestBody @Validated LoginDto loginDto) {
+    public Optional<User> createResolver(@RequestBody @Validated LoginDto loginDto, @PathVariable("department") String department) {
         return userService.createResolver(loginDto.getUsername(), loginDto.getPassword(), loginDto.getFirstName(),
                 loginDto.getLastName(), loginDto.getMiddleName(), loginDto.getPhoneNo(), loginDto.getEmployeeId(),
-                loginDto.getWorkingNumber(), loginDto.getLandline(), loginDto.getGender());
+                loginDto.getWorkingNumber(), loginDto.getLandline(), loginDto.getGender(), department);
     }
 
     @DeleteMapping("/{id}/delete")
@@ -87,10 +87,11 @@ public class UserController {
     @PutMapping("/{id}/update")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CSR') or hasRole('ROLE_USER')")
     @ResponseStatus(HttpStatus.CREATED)
-    public void updateProfile(@PathVariable("id") long id, @RequestBody UserDto userDto) {
+    public void updateProfile(@PathVariable("id") long id, @RequestBody UserDto userDto,
+                              @RequestHeader(value = "Authorization") String token) {
 
         userService.updateProfile(id,userDto.getUsername(), userDto.getFirstName(), userDto.getLastName(),
-                userDto.getMiddleName(), userDto.getPhoneNo());
+                userDto.getMiddleName(), userDto.getPhoneNo(), token);
     }
 
     @PatchMapping("/{id}/activate")
@@ -106,4 +107,25 @@ public class UserController {
     public  void  makeAdmin(@PathVariable("userId") long id){
         userService.updateRole(id, "ROLE_ADMIN");
     }
+
+    //
+    @GetMapping("/search/employeeId/{employeeId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public Page<User> getUsersByEmployeeId(@PathVariable("employeeId") String employeeId, Pageable pageable) {
+        return userService.findUsersByEmployeeId(employeeId, pageable);
+    }
+
+    @GetMapping("/search/firstName/{firstName}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public Page<User> getUsersByFirstName(@PathVariable("firstName") String firstName, Pageable pageable) {
+        return userService.findUsersByFirstName(firstName, pageable);
+    }
+
+    @GetMapping("/search/activationStatus/{activationStatus}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public Page<User> getUsersByActivationStatus(@PathVariable("activationStatus") String activationStatus, Pageable pageable) {
+        return userService.findUsersByActivationStatus(activationStatus, pageable);
+    }
+
+
 }
